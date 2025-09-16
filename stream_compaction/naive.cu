@@ -59,7 +59,7 @@ namespace StreamCompaction {
             // TODO
 
             // Iterative up-sweep (Hillis-Steele): offset = 1, 2, 4, ... < n
-			const int blockSize = 128; // number of threads per block
+			const int blockSize = 128; //128 // number of threads per block
 
 			// Ping-pong buffers: in each iteration, read from dev_in, write to dev_out, then swap
             for (int offset = 1; offset < n; offset *= 2) {
