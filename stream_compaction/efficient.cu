@@ -112,8 +112,98 @@ namespace StreamCompaction {
         int compact(int n, int *odata, const int *idata) {
             timer().startGpuTimer();
             // TODO
+
+			// Edge case: if n <= 0, return 0
+            if (n <= 0) {
+                timer().endGpuTimer();
+                return 0;
+            }
+
+            // Device memory allocation
+			int* dev_idata = nullptr; // device input array
+			int* dev_bools = nullptr; // device boolean array
+			int* dev_indices = nullptr; // device indices array
+			int* dev_odata = nullptr; // device output array
+
+			cudaMalloc(&dev_idata, n * sizeof(int)); // allocate device memory for input
+			cudaMalloc(&dev_bools, n * sizeof(int)); // allocate device memory for boolean array
+			cudaMalloc(&dev_odata, n * sizeof(int)); // allocate device memory for output
+            checkCUDAError("cudaMalloc failed for compaction arrays");
+
+            // We will allocate dev_indices with padding for scan
+			int pow2 = 1 << ilog2ceil(n); // next power of 2
+			cudaMalloc(&dev_indices, pow2 * sizeof(int)); // allocate device memory for indices with padding
+			checkCUDAError("cudaMalloc failed for indices array"); // check for errors
+
+            // Copy input to device
+			cudaMemcpy(dev_idata, idata, n * sizeof(int), cudaMemcpyHostToDevice); // copy input data to device
+			checkCUDAError("cudaMemcpy H2D for compaction input"); // check for errors
+
+            // Map input to booleans (1 = keep, 0 = discard)
+			int blockSize = 128; // number of threads per block
+			int fullBlocks = (n + blockSize - 1) / blockSize; // number of blocks needed
+			StreamCompaction::Common::kernMapToBoolean <<<fullBlocks, blockSize >>> (n, dev_bools, dev_idata); // launch kernel
+			checkCUDAError("kernMapToBoolean kernel"); // check for errors
+
+            // Scan on dev_bools -> dev_indices (inclusive of padding)
+            // Copy bools to indices array (and pad remaining space with 0)
+			cudaMemcpy(dev_indices, dev_bools, n * sizeof(int), cudaMemcpyDeviceToDevice); // copy bools to indices
+
+            if (pow2 > n) {
+				cudaMemset(dev_indices + n, 0, (pow2 - n) * sizeof(int)); // pad remaining space with 0
+            }
+            checkCUDAError("copy + pad boolean array for scan");
+
+            // Up-sweep phase on indices array
+            for (int step = 2; step <= pow2; step *= 2) {
+
+				int threads = pow2 / step; // number of add operations at this level
+				fullBlocks = (threads + blockSize - 1) / blockSize; // number of blocks needed
+				kernUpSweep <<<fullBlocks, blockSize >>> (pow2, step, dev_indices); // launch kernel
+                checkCUDAError("kernUpSweep (compaction) kernel");
+            }
+
+            // Set last element to 0 (prepare for exclusive scan)
+			cudaMemset(dev_indices + (pow2 - 1), 0, sizeof(int)); // set last element to 0
+            checkCUDAError("cudaMemset root for compaction scan");
+
+            // Down-sweep phase
+            for (int step = pow2; step >= 2; step /= 2) {
+
+				int threads = pow2 / step; // number of add operations at this level
+				fullBlocks = (threads + blockSize - 1) / blockSize; // number of blocks needed
+				kernDownSweep <<<fullBlocks, blockSize >>> (pow2, step, dev_indices); // launch kernel
+                checkCUDAError("kernDownSweep (compaction) kernel");
+            }
+
+            // Scatter non-zero elements to output array using computed indices
+			fullBlocks = (n + blockSize - 1) / blockSize; // number of blocks needed
+            StreamCompaction::Common::kernScatter <<<fullBlocks, blockSize >>> (
+				n, dev_odata, dev_idata, dev_bools, dev_indices); // launch kernel
+            checkCUDAError("kernScatter kernel");
+
+
             timer().endGpuTimer();
-            return -1;
+            
+            // Copy compacted data back to host
+            cudaMemcpy(odata, dev_odata, n * sizeof(int), cudaMemcpyDeviceToHost);
+            checkCUDAError("cudaMemcpy D2H for compaction output");
+
+            // Compute and return count of non-zero elements
+            int count = 0;
+            int lastBool, lastIndex;
+            cudaMemcpy(&lastBool, dev_bools + n - 1, sizeof(int), cudaMemcpyDeviceToHost);
+            cudaMemcpy(&lastIndex, dev_indices + n - 1, sizeof(int), cudaMemcpyDeviceToHost);
+            checkCUDAError("cudaMemcpy D2H for compaction count");
+            if (n > 0) {
+                count = lastIndex + lastBool;
+            }
+
+            cudaFree(dev_idata);
+            cudaFree(dev_bools);
+            cudaFree(dev_indices);
+            cudaFree(dev_odata);
+            return count;
         }
     }
 }
