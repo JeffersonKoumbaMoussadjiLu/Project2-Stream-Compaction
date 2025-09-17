@@ -4,7 +4,7 @@ set(headers
     "naive.h"
     "efficient.h"
     "thrust.h"
-    )
+     )
 
 set(sources
     "common.cu"

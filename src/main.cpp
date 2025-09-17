@@ -149,6 +149,53 @@ int main(int argc, char* argv[]) {
     //printArray(count, c, true);
     printCmpLenResult(count, expectedNPOT, b, c);
 
+    //////////////////////////////////////////////////////////////
+
+    // ### Extra Credit Feature Tests ###
+
+    printf("\n");
+    printf("*****************************\n");
+    printf("** EXTRA CREDIT TESTS **\n");
+    printf("*****************************\n");
+
+    // Radix sort test
+    srand(time(nullptr));                         // Seed random number generator
+    for (int i = 0; i < SIZE; ++i) {
+        a[i] = rand() % 100 - 50;                 // random int including negatives:contentReference[oaicite:24]{index=24}
+    }
+    printArray(SIZE, a, true);                    // Print input array (abridged) for reference
+    for (int i = 0; i < SIZE; ++i) {
+        b[i] = a[i];                              // Copy input to b for CPU sorting
+    }
+    std::sort(b, b + SIZE);                       // CPU sort (std::sort) for reference output
+    zeroArray(SIZE, c);                           // Zero out output array for GPU
+    printDesc("radix sort");                      // ==== radix sort ====:contentReference[oaicite:25]{index=25}
+    StreamCompaction::Radix::sort(SIZE, c, a);    // GPU radix sort on input array
+    printElapsedTime(StreamCompaction::Radix::timer().getGpuElapsedTimeForPreviousOperation(),
+        "(CUDA Measured)");          // GPU execution time (ms)
+    //printArray(SIZE, c, true);                  // (Optional) Debug: print sorted output array
+    printCmpResult(SIZE, b, c);                   // Compare GPU result (c) vs CPU result (b):contentReference[oaicite:26]{index=26}
+
+    // Shared scan test
+    genArray(SIZE, a, 50);                        // Generate new random array of length SIZE:contentReference[oaicite:27]{index=27}
+    printArray(SIZE, a, true);                    // Print input array (abridged)
+    zeroArray(SIZE, b);
+    StreamCompaction::CPU::scan(SIZE, b, a);      // CPU exclusive scan on input array
+    printElapsedTime(StreamCompaction::CPU::timer().getCpuElapsedTimeForPreviousOperation(),
+        "(std::chrono Measured)");   // CPU scan time (ms):contentReference[oaicite:28]{index=28}
+    //printArray(SIZE, b, true);                  // (Optional) Debug: print CPU scan output
+    zeroArray(SIZE, c);
+    printDesc("shared scan");                     // ==== shared scan ====:contentReference[oaicite:29]{index=29}
+    StreamCompaction::Shared::scan(SIZE, c, a);   // GPU shared-memory exclusive scan
+    printElapsedTime(StreamCompaction::Shared::timer().getGpuElapsedTimeForPreviousOperation(),
+        "(CUDA Measured)");          // GPU execution time (ms)
+    //printArray(SIZE, c, true);                  // (Optional) Debug: print GPU scan output
+    printCmpResult(SIZE, b, c);                   // Compare GPU result (c) vs CPU result (b)
+
+    // (End of extra credit tests)
+    
+    //////////////////////////////////////////////////////////
+
     system("pause"); // stop Win32 console from closing on exit
     delete[] a;
     delete[] b;
