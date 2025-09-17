@@ -103,6 +103,15 @@ For an additional challenge, we implemented a parallel radix sort on the GPU usi
 
 We repeat the above for all 32 bits of the integer. After the final bit, the array is sorted in ascending order. To handle negative numbers correctly, we adopted a common trick: interpret the 32-bit integers in two’s complement form such that all negative values appear “smaller” than positives. In practice, this can be achieved by offsetting values (e.g., adding $2^{31}$ to each number to make them all non-negative, sorting, then subtracting it back) or by modifying the final pass to ensure the sign bit is handled appropriately. Our implementation ensures that all negative numbers end up at the front of the sorted array (still in ascending order among themselves), followed by all positive numbers. The sorting is stable by construction, which means if two elements have equal value, their original order is preserved (important if this sort were to be extended for more complex keys). The complexity is O(32 * N) = O(N), since we perform a fixed 32 passes of scan/scatter regardless of input size. Each pass is parallel and largely memory-bandwidth bound. While 32 passes is a lot of work, this method can outperform a comparison-based sort for large N because it has better parallel scalability. We compared our GPU radix sort against ```std::sort``` on the CPU to evaluate performance.
 
+To call Radix Sort:
+- Look into the file efficient.cu
+```
+// Example call (device pointers):
+// n = number of elements; d_in, d_out are int* on device memory
+StreamCompaction::Efficient::Radix::sort(n, d_out, d_in);
+// After return, d_out holds the stable, ascending result.s
+```
+
 ## Performance Analysis
 
 <p align="center">
