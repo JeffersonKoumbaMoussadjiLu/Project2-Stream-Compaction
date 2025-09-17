@@ -200,66 +200,66 @@ This is the final output running the test cases with:
 ****************
 ** SCAN TESTS **
 ****************
-    [   0   9  35  11  36   9  26  22  38  31  35   0  31 ...  38   0 ]
+    [  24  31   8   5  35   2  12  35  24   2  26  42  21 ...  12   0 ]
 ==== cpu scan, power-of-two ====
-   elapsed time: 23.2384ms    (std::chrono Measured)
-    [   0   0   9  44  55  91 100 126 148 186 217 252 252 ... 410967026 410967064 ]
+   elapsed time: 24.4372ms    (std::chrono Measured)
+    [   0  24  55  63  68 103 105 117 152 176 178 204 246 ... 411033596 411033608 ]
 ==== cpu scan, non-power-of-two ====
-   elapsed time: 23.5367ms    (std::chrono Measured)
-    [   0   0   9  44  55  91 100 126 148 186 217 252 252 ... 410966993 410966997 ]
+   elapsed time: 24.253ms    (std::chrono Measured)
+    [   0  24  55  63  68 103 105 117 152 176 178 204 246 ... 411033547 411033572 ]
     passed
 ==== naive scan, power-of-two ====
-   elapsed time: 8.78406ms    (CUDA Measured)
+   elapsed time: 8.45494ms    (CUDA Measured)
     passed
 ==== naive scan, non-power-of-two ====
-   elapsed time: 8.94765ms    (CUDA Measured)
+   elapsed time: 8.3873ms    (CUDA Measured)
     passed
 ==== work-efficient scan, power-of-two ====
-   elapsed time: 3.02592ms    (CUDA Measured)
+   elapsed time: 3.18029ms    (CUDA Measured)
     passed
 ==== work-efficient scan, non-power-of-two ====
-   elapsed time: 2.80576ms    (CUDA Measured)
+   elapsed time: 2.86925ms    (CUDA Measured)
     passed
 ==== thrust scan, power-of-two ====
-   elapsed time: 0.876ms    (CUDA Measured)
+   elapsed time: 1.13389ms    (CUDA Measured)
     passed
 ==== thrust scan, non-power-of-two ====
-   elapsed time: 0.843424ms    (CUDA Measured)
+   elapsed time: 0.760352ms    (CUDA Measured)
     passed
 
 *****************************
 ** STREAM COMPACTION TESTS **
 *****************************
-    [   3   2   3   2   1   1   1   3   0   1   3   0   0 ...   1   0 ]
+    [   2   3   0   1   3   2   0   1   2   0   0   0   1 ...   2   0 ]
 ==== cpu compact without scan, power-of-two ====
-   elapsed time: 56.6298ms    (std::chrono Measured)
-    [   3   2   3   2   1   1   1   3   1   3   2   2   3 ...   3   1 ]
+   elapsed time: 27.7898ms    (std::chrono Measured)
+    [   2   3   1   3   2   1   2   1   2   3   1   1   1 ...   3   2 ]
     passed
 ==== cpu compact without scan, non-power-of-two ====
-   elapsed time: 33.3305ms    (std::chrono Measured)
-    [   3   2   3   2   1   1   1   3   1   3   2   2   3 ...   1   2 ]
+   elapsed time: 27.2077ms    (std::chrono Measured)
+    [   2   3   1   3   2   1   2   1   2   3   1   1   1 ...   1   1 ]
     passed
 ==== cpu compact with scan ====
-   elapsed time: 98.6215ms    (std::chrono Measured)
-    [   3   2   3   2   1   1   1   3   1   3   2   2   3 ...   3   1 ]
+   elapsed time: 113.672ms    (std::chrono Measured)
+    [   2   3   1   3   2   1   2   1   2   3   1   1   1 ...   3   2 ]
     passed
 ==== work-efficient compact, power-of-two ====
-   elapsed time: 22.1919ms    (CUDA Measured)
+   elapsed time: 15.8828ms    (CUDA Measured)
     passed
 ==== work-efficient compact, non-power-of-two ====
-   elapsed time: 23.1942ms    (CUDA Measured)
+   elapsed time: 15.6678ms    (CUDA Measured)
     passed
 
 *****************************
-** EXTRA TESTS **
+** EXTRA CREDIT TESTS **
 *****************************
-    [ -47   8  49 -44 -17  35  39  45 -18 -17  37  -6   2 ... -17  -4 ]
+    [  24 -19 -42 -45 -15 -48 -38  35  24   2  26  42 -29 ...  12  36 ]
 ==== radix sort ====
-   elapsed time: 107.549ms    (CUDA Measured)
+   elapsed time: 92.1836ms    (CUDA Measured)
     passed
-    [   7  38  45   2  47  44   1  18  43  35  39  38  23 ...  10  24 ]
-   elapsed time: 24.5372ms    (std::chrono Measured)
+    [  27  30   4   0  49  28  24   8  36   4  28  36   9 ...  39  14 ]
+   elapsed time: 42.7475ms    (std::chrono Measured)
 ==== shared scan ====
-   elapsed time: 1.05357ms    (CUDA Measured)
+   elapsed time: 0.852576ms    (CUDA Measured)
     passed
 ```

@@ -67,7 +67,7 @@ namespace StreamCompaction {
             timer().startGpuTimer();
             // TODO
 
-			const int blockSize = 64; //128 // number of threads per block
+			const int blockSize = 128; //128 // number of threads per block
 
             // Up-sweep (reduce) phase: build sum in place
             for (int step = 2; step <= pow2; step *= 2) {
